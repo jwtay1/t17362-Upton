@@ -57,17 +57,17 @@ for iFrame = 1:numFramesYFP
     YFPframe = YFPframe./calYFP_corr;
     DAPIframe = DAPIframe./calDAPI_corr;
 
-    %Make a mask
-    thLvl = getThreshold(DAPIframe);
-
-    maskDAPI = DAPIframe > thLvl;
-    maskDAPI = imopen(maskDAPI, strel('diamond', 1));
-    maskDAPI = imdilate(maskDAPI, strel('disk', 1));
-
-    maskDAPI = imclearborder(maskDAPI); 
-      
-    %If first of three frames, set up new tracking object
+    %If first of three frames, make a new mask and set up new tracking object
     if  ismember(iFrame,firstframes)==1
+
+        %Make a mask
+        thLvl = getThreshold(DAPIframe);
+
+        maskDAPI = DAPIframe > thLvl;
+        maskDAPI = imopen(maskDAPI, strel('diamond', 1));
+        maskDAPI = imdilate(maskDAPI, strel('disk', 1));
+
+        maskDAPI = imclearborder(maskDAPI);
 
         %Initialize a new tracking object
         L = LAPLinker;
@@ -160,6 +160,7 @@ for iCell = 1:numel(combinedCellData)
 
 end
 combinedCellData(idxToDelete) = [];
+
 
 figure;
 plot(combinedCellData(5).Frames, combinedCellData(5).DAPIbleach, combinedCellData(5).Frames, combinedCellData(5).YFPbleach)
