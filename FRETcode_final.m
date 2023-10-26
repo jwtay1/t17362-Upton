@@ -157,7 +157,7 @@ for iCell = 1:numel(combinedCellData)
     elseif any(diff(combinedCellData(iCell).Area) > 80)
         idxToDelete = [idxToDelete iCell];
         
-    elseif any(combinedCellData(iCell).Area) < 50)
+    elseif any(combinedCellData(iCell).Area < 50)
         %Remove cells that are too small
         
         idxToDelete = [idxToDelete iCell];
