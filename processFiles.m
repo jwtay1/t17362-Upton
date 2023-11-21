@@ -1,16 +1,11 @@
-clearvars
-close all
-clc
+function processFiles(YFPfn, DAPIfn, YFPcalfn, DAPIcalfn)
 
-%Load YFP and DAPI images taken during bleaching process (for correlation
-%coefficient)
+
+
 
 %Files are sequences of 3 images for each dataset, but compiled by channel
-%YFPfile='C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\10_11_BamA_YidC_live_binned_YFP.tif';
-%DAPIfile='C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\10_11_BamA_YidC_live_binned_DAPI.tif';
-
-YFPfile = 'C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\BamA_only_pZS21_YFP.tif';
-DAPIfile = 'C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\BamA_only_pZS21_DAPI.tif';
+YFPfile = '10_11_BamA_YidC_live_binned_YFP.tif';
+DAPIfile = '10_11_BamA_YidC_live_binned_DAPI.tif';
 
 %Compute number of frames
 YFPinfo = imfinfo(YFPfile);
@@ -20,18 +15,18 @@ DAPIinfo = imfinfo(DAPIfile);
 numFramesDAPI = numel(DAPIinfo);
 
 %calibration slides
-calDAPI=imread('C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\cal DAPI binned.tif');
-calYFP=imread('C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\cal YFP binned.tif');
+calDAPI = imread('cal DAPI binned.tif');
+calYFP = imread('cal YFP binned.tif');
 
 %de-noise calibration slides
-calDAPI_corr=imgaussfilt(calDAPI);
-calYFP_corr=imgaussfilt(calYFP);
+calDAPI_corr = imgaussfilt(calDAPI);
+calYFP_corr = imgaussfilt(calYFP);
 
 %normalize calibration 
-calDAPI_corr=double(calDAPI_corr);
-calDAPI_corr=calDAPI_corr./(max(max(calDAPI_corr)));
-calYFP_corr=double(calYFP_corr);
-calYFP_corr=calYFP_corr./(max(max(calYFP_corr)));
+calDAPI_corr = double(calDAPI_corr);
+calDAPI_corr = calDAPI_corr./(max(max(calDAPI_corr)));
+calYFP_corr = double(calYFP_corr);
+calYFP_corr = calYFP_corr./(max(max(calYFP_corr)));
 
 
 %For each frame during bleaching, mask DAPI/YFP channels bright points, add
@@ -62,7 +57,7 @@ for iFrame = 1:numFramesYFP
     DAPIframe = DAPIframe./calDAPI_corr;
 
     %If first of three frames, make a new mask and set up new tracking object
-    if  ismember(iFrame,firstframes) == 1
+    if  ismember(iFrame,firstframes)==1
 
         %Make a mask
         thLvl = getThreshold(DAPIframe);
@@ -77,21 +72,6 @@ for iFrame = 1:numFramesYFP
         L = LAPLinker;
 
         ctrFrame = 1;   
-
-        refImage = DAPIframe;
-
-    else
-
-        %Register the images
-        pxShift = xcorrreg(refImage, DAPIframe);
-        
-        DAPIframe = circshift(DAPIframe, pxShift);        
-        YFPframe = circshift(YFPframe, pxShift);
-
-        % %Write an output file to test
-        % Iout = showoverlay(DAPIframe, bwperim(maskDAPI));
-        % imshowpair(Iout, refImage);
-        % keyboard
       
     end
 
@@ -189,7 +169,7 @@ combinedCellData(idxToDelete) = [];
 
 figure;
 plot(combinedCellData(5).Frames, combinedCellData(5).DAPIbleach, combinedCellData(5).Frames, combinedCellData(5).YFPbleach)
-legend('DAPI', 'YFP')
+
 
 return
 
@@ -235,12 +215,11 @@ Emean_store=[];
 Emean_numTracks_store=[];
 Length_store=[];
 
-%%
 mean_pre=mean(DAPIpre);
 mean_post=mean(DAPIpost);
 FRETaverage=(mean_post-mean_pre)/(mean_post)*100
 
-FRETcell=((DAPIpost-DAPIpre)./DAPIpost)*100;
+FRETcell=(DAPIpost-DAPIpre)./DAPIpost*100;
 figure;
 histogram(FRETcell);
 title('Ecell (%)');
