@@ -6,8 +6,8 @@ clc
 %coefficient)
 
 %Files are sequences of 3 images for each dataset, but compiled by channel
-YFPfile='../data/10_11_BamA_YidC_live_binned_YFP.tif';
-DAPIfile='../data/10_11_BamA_YidC_live_binned_DAPI.tif';
+YFPfile='../data/ChannelDAPI YFP,SDC-YFP_Seq0000_SDC-YFP.tif';
+DAPIfile='../data/ChannelDAPI YFP,SDC-YFP_Seq0000_DAPI YFP.tif';
 
 %YFPfile = '../data/BamA_only_pZS21_YFP.tif';
 %DAPIfile = '../data/BamA_only_pZS21_DAPI.tif';
@@ -196,7 +196,7 @@ combinedCellData(idxToDelete) = [];
 
 %Save the resulting data
 
-save('experiment.mat', 'combinedCellData');
+save('experiment2.mat', 'combinedCellData');
 
 
 return
