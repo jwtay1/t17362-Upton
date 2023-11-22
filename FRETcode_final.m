@@ -6,11 +6,11 @@ clc
 %coefficient)
 
 %Files are sequences of 3 images for each dataset, but compiled by channel
-%YFPfile='C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\10_11_BamA_YidC_live_binned_YFP.tif';
-%DAPIfile='C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\10_11_BamA_YidC_live_binned_DAPI.tif';
+YFPfile='../data/10_11_BamA_YidC_live_binned_YFP.tif';
+DAPIfile='../data/10_11_BamA_YidC_live_binned_DAPI.tif';
 
-YFPfile = 'C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\BamA_only_pZS21_YFP.tif';
-DAPIfile = 'C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\BamA_only_pZS21_DAPI.tif';
+%YFPfile = '../data/BamA_only_pZS21_YFP.tif';
+%DAPIfile = '../data/BamA_only_pZS21_DAPI.tif';
 
 %Compute number of frames
 YFPinfo = imfinfo(YFPfile);
@@ -20,25 +20,24 @@ DAPIinfo = imfinfo(DAPIfile);
 numFramesDAPI = numel(DAPIinfo);
 
 %calibration slides
-calDAPI=imread('C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\cal DAPI binned.tif');
-calYFP=imread('C:\Users\Jian Tay\OneDrive - UCB-O365\Shared\ALMC Tickets\Ticket 17362 - Stephen Upton\data\cal YFP binned.tif');
+calDAPI = imread('../data/cal DAPI binned.tif');
+calYFP = imread('../data/cal YFP binned.tif');
 
 %de-noise calibration slides
-calDAPI_corr=imgaussfilt(calDAPI);
-calYFP_corr=imgaussfilt(calYFP);
+calDAPI_corr = imgaussfilt(calDAPI);
+calYFP_corr = imgaussfilt(calYFP);
 
 %normalize calibration 
-calDAPI_corr=double(calDAPI_corr);
-calDAPI_corr=calDAPI_corr./(max(max(calDAPI_corr)));
-calYFP_corr=double(calYFP_corr);
-calYFP_corr=calYFP_corr./(max(max(calYFP_corr)));
-
+calDAPI_corr = double(calDAPI_corr);
+calDAPI_corr = calDAPI_corr./(max(max(calDAPI_corr)));
+calYFP_corr = double(calYFP_corr);
+calYFP_corr = calYFP_corr./(max(max(calYFP_corr)));
 
 %For each frame during bleaching, mask DAPI/YFP channels bright points, add
 %up cumulative intensities of those points and monitor over bleaching
-YFPbleach=[];
-DAPIbleach=[];
-numCells_total=[];
+YFPbleach = [];
+DAPIbleach = [];
+numCells_total = [];
 
 %input number of first frames
 % firstframes = [1 4 7 10 13 16 19 22 25 28]; 
@@ -100,8 +99,8 @@ for iFrame = 1:numFramesYFP
     bg_YFP = median(median(YFPframe));
 
     %Compile cell data so we can implement tracking
-    data_DAPI = regionprops(maskDAPI, DAPIframe, 'PixelValues', 'Area', 'Centroid');
-    data_YFP = regionprops(maskDAPI, YFPframe, 'PixelValues');
+    data_DAPI = regionprops(maskDAPI, DAPIframe, 'PixelValues', 'Area', 'Centroid', 'MeanIntensity');
+    data_YFP = regionprops(maskDAPI, YFPframe, 'PixelValues', 'MeanIntensity');
 
     for iCell = 1:numel(data_DAPI)
 
@@ -109,6 +108,9 @@ for iFrame = 1:numFramesYFP
         celldata(iCell).YFPpixelvalues = data_YFP(iCell).PixelValues;
         celldata(iCell).Area = data_DAPI(iCell).Area;
         celldata(iCell).Centroid = data_DAPI(iCell).Centroid;
+
+        celldata(iCell).DAPIintensity = data_DAPI(iCell).MeanIntensity;
+        celldata(iCell).YFPintensity = data_YFP(iCell).MeanIntensity;
 
         %Background correct DAPI and YFP values
         celldata(iCell).DAPIbleach = sum(celldata(iCell).DAPIpixelvalues - bg_DAPI);
@@ -164,7 +166,7 @@ for iFrame = 1:numFramesYFP
     ctrFrame = ctrFrame + 1;
 
 end
-%%
+%% Data Analysis
 %Remove any cells that were not tracked the whole way or were tracked
 %incorrectly (based on change in size)
 idxToDelete = [];
@@ -187,9 +189,15 @@ end
 combinedCellData(idxToDelete) = [];
 
 
-figure;
-plot(combinedCellData(5).Frames, combinedCellData(5).DAPIbleach, combinedCellData(5).Frames, combinedCellData(5).YFPbleach)
-legend('DAPI', 'YFP')
+% figure;
+% plot(combinedCellData(5).Frames, combinedCellData(5).DAPIbleach, combinedCellData(5).Frames, combinedCellData(5).YFPbleach)
+% legend('DAPI', 'YFP')
+% 
+
+%Save the resulting data
+
+save('experiment.mat', 'combinedCellData');
+
 
 return
 
