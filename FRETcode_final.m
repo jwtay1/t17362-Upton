@@ -6,8 +6,11 @@ clc
 %coefficient)
 
 %Files are sequences of 3 images for each dataset, but compiled by channel
-YFPfile='../data/ChannelDAPI YFP,SDC-YFP_Seq0000_SDC-YFP.tif';
-DAPIfile='../data/ChannelDAPI YFP,SDC-YFP_Seq0000_DAPI YFP.tif';
+%YFPfile='../data/ChannelDAPI YFP,SDC-YFP_Seq0000_SDC-YFP.tif';
+%DAPIfile='../data/ChannelDAPI YFP,SDC-YFP_Seq0000_DAPI YFP.tif';
+
+YFPfile='../data/BamA_YidCSW2_codecheck_YFP.tif';
+DAPIfile='../data/BamA_YidCSW2_codecheck_DAPI.tif';
 
 %YFPfile = '../data/BamA_only_pZS21_YFP.tif';
 %DAPIfile = '../data/BamA_only_pZS21_DAPI.tif';
@@ -20,8 +23,8 @@ DAPIinfo = imfinfo(DAPIfile);
 numFramesDAPI = numel(DAPIinfo);
 
 %calibration slides
-calDAPI = imread('../data/cal DAPI binned.tif');
-calYFP = imread('../data/cal YFP binned.tif');
+calDAPI = imread('../data/calDAPI-1.tif');
+calYFP = imread('../data/calYFP-1.tif');
 
 %de-noise calibration slides
 calDAPI_corr = imgaussfilt(calDAPI);
@@ -52,6 +55,26 @@ for iFrame = 1:numFramesYFP
     YFPframe = imread(YFPfile,iFrame);
     DAPIframe = imread(DAPIfile,iFrame);
 
+    %Register the images - this needs to be done before the normalization
+    if ismember(iFrame, firstframes) == 1
+
+        refImage = DAPIframe;
+
+    else
+
+        %Register the images
+        pxShift = xcorrreg(refImage, DAPIframe);
+
+        DAPIframe = circshift(DAPIframe, pxShift);
+        YFPframe = circshift(YFPframe, pxShift);
+
+        % %Write an output file to test
+        Iout = showoverlay(DAPIframe, bwperim(maskDAPI));
+        imshowpair(Iout, refImage);
+        keyboard
+
+    end
+
     %convert to double format
     YFPframe = double(YFPframe);
     DAPIframe = double(DAPIframe);
@@ -77,21 +100,6 @@ for iFrame = 1:numFramesYFP
 
         ctrFrame = 1;   
 
-        refImage = DAPIframe;
-
-    else
-
-        %Register the images
-        pxShift = xcorrreg(refImage, DAPIframe);
-        
-        DAPIframe = circshift(DAPIframe, pxShift);        
-        YFPframe = circshift(YFPframe, pxShift);
-
-        % %Write an output file to test
-        % Iout = showoverlay(DAPIframe, bwperim(maskDAPI));
-        % imshowpair(Iout, refImage);
-        % keyboard
-      
     end
 
     %Fix this - need to use morphological operations
